@@ -1,0 +1,7 @@
+set xlabel 'd (m)'
+set ylabel 'dB'
+set xrange[0:250]
+set yrange[-40:-10]
+plot "../outputs/Uplink" usi 1:2 w p title "signal",\
+ "../outputs/Uplink" usi 1:3 w p title "SINR"
+

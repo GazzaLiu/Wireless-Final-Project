@@ -1,0 +1,21 @@
+student id : B03202015
+
+
+HOW TO USE:
+
+1. compile should use 
+	g++ -std=c++11 main.cpp -o main.o
+2. run the program:
+	./main.o -[T_R|S] <input> <output>
+	example:
+		./main.o -T_R distance.txt T_R.out
+		./main.o -S distance.txt S.out
+
+2.if you only want to see the graph:
+	1.gnuplot 
+	2.type " load  'Shadow'  " or
+	       "  load 'T_R' " 
+	   in gnuplot.
+#in this program:
+	T_R means two ray ground model.
+	Shadow means inculding the shadowing effect	

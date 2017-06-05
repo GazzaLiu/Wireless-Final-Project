@@ -1,0 +1,6 @@
+set xlabel 'd (m)'
+set ylabel 'bit/s'
+set xrange[0:250]
+set yrange[300000:3000000]
+plot "../outputs/SC" usi 1:2 w p title "bit-rate",\
+

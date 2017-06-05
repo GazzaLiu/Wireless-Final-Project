@@ -1,0 +1,7 @@
+set xlabel 'd(m)'
+set ylabel 'd(m)'
+set xrange[-250:250]
+set yrange[-250:250]
+
+plot "../outputs/mobile_user" usi 1:2  w p  title "mobile",\
+ "<echo '0 0'" with points pt 10 ps 2 lt rgb "blue" title "BASE"

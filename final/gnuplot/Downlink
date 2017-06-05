@@ -1,0 +1,6 @@
+set xlabel 'CBR'
+set ylabel 'loss-rate'
+set xrange[100:3000]
+set yrange[0:19000]
+plot "../outputs/aloha" usi 1:2 w p title "loss-rate",\
+
