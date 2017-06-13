@@ -1,3 +1,4 @@
+#pragma once
 #ifndef MODEL_H
 #define MODEL_H
 #include<vector>
@@ -8,101 +9,117 @@ using namespace std;
 //default_random_engine generator;
 
 //normal_distribution<double> distribution(0.0,36.0);
-struct DATA{
-	public:
-	DATA(){}
+struct DATA {
+public:
+	DATA() {}
 	//~DATA();
-	DATA(double a,double b,double c):signal(a),SINR(b),bit_rate(c){}
+	DATA(double a, double b, double c) :signal(a), SINR(b), bit_rate(c) {}
 	double SINR;
 	double signal;
 	double bit_rate;
-	DATA operator =(const DATA& i){this->SINR=i.SINR;
-				       this->signal=i.signal;
-				       this->bit_rate=i.bit_rate;
-				       return *this;}
-	 
+	DATA operator =(const DATA& i) {
+		this->SINR = i.SINR;
+		this->signal = i.signal;
+		this->bit_rate = i.bit_rate;
+		return *this;
+	}
+
 };
 
-class model{
-	public:
-	  model(){}
-	  DATA two_ray_ground(vector<double>& data);
-	  DATA shadowing(vector<double>& data);
-	  void mode(int i);
-	  double inter(int distance);
-	  double factor=k*tem*band;
-	private:
-	  double mobile=-7;
-	  double B_H=51.5;
-          double U_H=1.5;
-          double tem=300.15;
-          double band=pow(10,7);
-	  double users=50;
-          double k=1.37*pow(10,-23);
-          double power=-7;
-          double gain=14;
-          double f=5*pow(10,6);
-          double c=3*pow(10,8);
-          double w_l=100;
-	  //double inter(int distance);
+class model {
+public:
+	model() {}
+	DATA two_ray_ground(vector<double>& data);
+	//DATA shadowing(vector<double>& data);
+	void mode(int i);
+	double inter(int distance);
+	double factor = k*tem*band;
+private:
+	double mobile = -7;
+	double B_H = 51.5;
+	double U_H = 1.5;
+	double tem = 300.15;
+	double band = pow(10, 7);
+	double users = 50;
+	double k = 1.37*pow(10, -23);
+	double power = -7;
+	double gain = 14;
+	double f = 5 * pow(10, 6);
+	double c = 3 * pow(10, 8);
+	double w_l = 100;
+	//double inter(int distance);
 };
-class mobile{
-	public:
-	  double x=250;
-	  double y=0;
-	  double time=0;
-	  double v=0;
-	  double theta=0;
+class mobile {
+public:
+	double x = 250;
+	double y = 0;
+	double time = 0;
+	double v = 0;
+	double theta = 0;
+
 };
 
 
 
-class random_access{
-	public:
-	vector<bool> collision(vector<double> time,vector<double> rate);
-	void add_mobiles(vector<double> a){mn=a;}
+class random_access {
+public:
+	vector<bool> collision(vector<double> time, vector<double> rate);
+	void add_mobiles(vector<double> a) { mn = a; }
 	vector<bool> time_solt;
-	int bits=10;	
-	protected:
+	int bits = 10;
+protected:
 	float time_interval;
 	//float gruad_time;
-	double speed=3*pow(10,8);
+	double speed = 3 * pow(10, 8);
 	vector<double> mn;
 	vector<bool> transmitting;
 };
 
-class aloha : public random_access{
+class aloha : public random_access {
 	//now if all mns want to transmit 10kb data at a random time
-	public:
+public:
 	//int bts=10*1000;
-	int total_time=0;
+	int total_time = 0;
+	int total_duration = 0;
 	vector<double> random_time();
-	 
+
 };
 
 
-class solt_aloha : public random_access{
+class solt_aloha : public random_access {
 };
 
 
-class one_CSMA : public random_access{
+class one_CSMA : public random_access {
 };
 
-class non_CSMA : public random_access{
+class non_CSMA : public aloha {
+public:
+	int data_transmitted = 0; //幾個mobile已經傳輸成功
+	double last_busy_end = 0;
+	int next_mobile = 1; //下一個要傳輸的mobile編號
+	vector<int> backoff;
+	int collision = 1; //有無發生collision
+	int all_mobile_collision = 0; //如果所有人都collision
+	double backoff_slot = 0.01;
+	int backoff_max = 20;
+	int collision_no_duration(vector<double> mobile_time, vector<double> bit_rate);
+	int collision_have_duration(vector<double> mobile_time, vector<double> bit_rate);
+	vector<double> calculate_transmit_duration(double bits, vector<double> bit_rate);
 };
 
 
-class random_i{
-        public:
-          random_i(){}
-          void generate(int n);
-          void print(fstream& a);
-          vector<vector<double>> distance(const vector<double>& a,const vector<double>& b);
-          vector<vector<double>> BS_dis();
-          const vector<double> dis();
-        private:
-         vector<double> R;
-         vector<double> theta;
+class random_i {
+public:
+	random_i() {}
+	void generate(int n);
+	//void print(fstream& a);
+	//vector<vector<double>> distance(const vector<double>& a, const vector<double>& b);
+	vector<vector<double>> BS_dis();
+	const vector<double> dis();
+private:
+	vector<double> R;
+	vector<double> theta;
 };
 
 
