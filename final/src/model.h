@@ -85,8 +85,36 @@ class solt_aloha : public random_access{
 };
 
 
+// -----
 class one_CSMA : public random_access{
+	public:
+		//bool isBusy = false;
+		int captureThreshold = 10; // consider capture or not
+		bool isCollision = false;
+		int bitsInterval = 0;
+		int count = 0;
+		int endBits = 0;
+		int MScapture = -1;
+		double p = 1;
+		int MSsend = -1;
+		int sending = -1;
+		int startBits = 0;	
+		double data = 0;
+		double idleTime = -1;
+		double time_interval = 0.01;
+		double total_time = 100;
+		double succeed = 0;
+		int MSstatus[50];
+		//bool MSprepared[50]; // bad allocate memory
+		bool MSsucceed[50]; // bad allocate memory
+		//bool MSwaiting[50]; // bad allocate memory
+		bool MScollide[50]; // bad allocate memory
+		/*vector<int> MSprepared;
+		vector<int> MSsucceed;
+		vector<int> MSwaiting;*/
+		vector<double> random_time();
 };
+// -----
 
 class non_CSMA : public random_access{
 };

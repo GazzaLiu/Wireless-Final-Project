@@ -97,7 +97,21 @@ aloha::random_time(){
 	return random;
 };
 
-
+// --
+vector<double> one_CSMA::random_time(){
+	double lower_bound=0;
+	double upper_bound=total_time;
+	uniform_real_distribution<double> unif(lower_bound,upper_bound);
+	default_random_engine re;
+	vector<double> random;
+	for(unsigned i=0;i<mn.size();++i){
+	   double ran=unif(re);
+	   random.push_back(ran);
+	}
+	sort(random.begin(),random.end());
+	return random;
+};
+// --
 
 void
 random_i::generate(int n){
