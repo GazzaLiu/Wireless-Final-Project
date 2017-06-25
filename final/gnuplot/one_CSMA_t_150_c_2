@@ -1,6 +1,0 @@
-set xlabel 'CBR'
-set ylabel 'loss-rate'
-set xrange[100:15000]
-set yrange[0:1]
-plot "../outputs/one_CSMA_t_150_c_2" usi 1:3 w p title "loss-rate",\
-

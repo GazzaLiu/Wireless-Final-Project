@@ -88,30 +88,21 @@ class solt_aloha : public random_access{
 // -----
 class one_CSMA : public random_access{
 	public:
-		//bool isBusy = false;
-		int captureThreshold = 10; // consider capture or not
-		bool isCollision = false;
-		int bitsInterval = 0;
-		int count = 0;
-		int endBits = 0;
-		int MScapture = -1;
-		double p = 1;
-		int MSsend = -1;
-		int sending = -1;
-		int startBits = 0;	
-		double data = 0;
-		double idleTime = -1;
+		bool isBusy;
+		bool isCollision;
+		int bitsInterval;
+		int captureThreshold;
+		int count;
+		int endBits;	
+		int sending;
+		int startBits;
+		double data;
+		double p;
+		double succeed;
 		double time_interval = 0.01;
-		double total_time = 100;
-		double succeed = 0;
-		int MSstatus[50];
-		//bool MSprepared[50]; // bad allocate memory
-		bool MSsucceed[50]; // bad allocate memory
-		//bool MSwaiting[50]; // bad allocate memory
-		bool MScollide[50]; // bad allocate memory
-		/*vector<int> MSprepared;
-		vector<int> MSsucceed;
-		vector<int> MSwaiting;*/
+		double total_time;
+		int MSstatus[50]; // 0:idle 1:waiting(listening) 2:prepared 3:sending(succeed) 4:sending(failed) 5:finished(succeed) 6:finished(failed)
+		double idleTime[50];
 		vector<double> random_time();
 };
 // -----

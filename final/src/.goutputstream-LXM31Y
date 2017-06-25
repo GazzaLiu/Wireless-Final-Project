@@ -14,15 +14,10 @@ void help_message(){
 
 int main (int argc , char* argv[])
 {
-	bool isRandom;
 	char buffer[200];
 	fstream file_out(argv[2], ios::out);
 
-	cout<<"Random? (y/n : 1/0)"<<endl;
-	cin>>isRandom;
-	if (isRandom) {
-		srand(time(NULL)); // set random
-	}
+	//srand(time(NULL)); // set random
 
 	// --Aloha--
 	if(!strcmp(argv[1],"-aloha")){
@@ -69,11 +64,13 @@ int main (int argc , char* argv[])
 
 	// --CSMA--
 	else if (!strcmp(argv[1],"-CSMA")) {
+
 	int runTime;
+	
 	vector<double> bit_rate;
 	vector<double> SINR;
 	vector<double> time_stat;
-	vector<double> result[3];
+	
 	one_CSMA CSMA_model;
 
 	cout<<"Run Time : ";
@@ -90,11 +87,18 @@ int main (int argc , char* argv[])
 	cin>>CSMA_model.endBits;
 	cout<<"Bits interval (20) : ";
 	cin>>CSMA_model.bitsInterval;
+	
+	//vector<vector<double>> result;
+	/*for (int i = 0; i <= (CSMA_model.endBits - CSMA_model.startBits) / CSMA_model.bitsInterval; i++) {
+		for (int j = 0; j < 3; j++) {
+			result[i][j] = 0;
+		}
+	}*/
 
 	for (int n = 0; n < runTime; n++) {
+
 		// initializing
 		model Model;
-		int count = 0;
 		int num = 50;
 		random_i r;
 		r.generate(num);
@@ -116,59 +120,70 @@ int main (int argc , char* argv[])
 		
 		//cout<<"send time"<<'\t'<<"bit rate"<<'\t'<<"SINR"<<endl; // log
 		// log
-		/*for (int i = 0; i < D.size(); i++) {
+		for (int i = 0; i < D.size(); i++) {
 			cout<<time_stat[i]<<'\t'<<bit_rate[i]<<'\t'<<SINR[i]<<endl;
-		}*/
+		}
 
 		for (int bits = CSMA_model.startBits; bits < CSMA_model.endBits; bits += CSMA_model.bitsInterval) {
-			// initializing
 
+			// debug log
+			//cout<<"bits loop start"<<endl;
+			//cout<<CSMA_model.total_time<<" "<<CSMA_model.time_interval<<endl;
+
+			// initializing
+			int count = 0;
 			CSMA_model.isBusy = false;
 			CSMA_model.isCollision = false;
 			CSMA_model.bits = bits;
 			CSMA_model.count = 0;
 			CSMA_model.data = 0;
+			CSMA_model.idleTime = -1;
+			CSMA_model.MScapture = -1;
+			CSMA_model.MSsend = -1;
 			CSMA_model.sending = -1;
 			CSMA_model.succeed = 0;
+
 			for (int j = 0; j < num; j++) {
 				CSMA_model.MSstatus[j] = 0;
-				CSMA_model.idleTime[j] = -1;
+				CSMA_model.MScollide[j] = false;
+				CSMA_model.MSsucceed[j] = false;
 			}
 
 			//cout<<"start stimulation with total time "<<CSMA_model.total_time<<" (sec) and data "<<bits<<" (bits)"<<endl; // log
 
-			// main loop
+			//main loop
 			for (double t = 0; t <= CSMA_model.total_time; t += CSMA_model.time_interval) {
-				//cout<<t; // debug log
 				CSMA_model.isCollision = false;
+				
 				// send data
 				for (int j = 0; j < num; j++) {
-					if (CSMA_model.MSstatus[j] == 2) {
-						if (CSMA_model.sending == -1) {
-							CSMA_model.MSstatus[j] = 3;
-							CSMA_model.sending = j;
-						}
-						else {
-							CSMA_model.MSstatus[j] = 4;
-							CSMA_model.MSstatus[CSMA_model.sending] = 4;
-							CSMA_model.isCollision = true;
-						}
-						CSMA_model.idleTime[j] = t + bits / bit_rate[j];
-						CSMA_model.idleTime[j] *= res;
-						CSMA_model.idleTime[j] = round(CSMA_model.idleTime[j]);
-						CSMA_model.idleTime[j] /= res;
-						CSMA_model.isBusy = true;
+					if (CSMA_model.MSstatus[j] == 2 && !isBusy) {
+						CSMA_model.MSstatus[j] = 3;
+						//CSMA_model.MSsend = j;
 					}
+					else if (CSMA_model.MSstatus[j] == 2 && isBusy) {
+						CSMA_model.MSstatus[j] = 4;
+					}
+					// collision
+					/*else if (CSMA_model.MSstatus[j] == 2 && CSMA_model.MSsend != -1) {
+						CSMA_model.MScollide[CSMA_model.MSsend] = true;
+						CSMA_model.MScollide[j] = true;
+						CSMA_model.MSstatus[CSMA_model.MSsend] = 3;
+						CSMA_model.MSstatus[j] = 3;
+						CSMA_model.isCollision = true;
+						// break;
+					}*/
 				}
-				// handle collision and capture
+				
+				// handle collision
 				if (CSMA_model.isCollision) {
-					CSMA_model.sending = -1;
 					vector<pair<double, int>> capture;
 					//cout<<t<<" sec "<<"collision, "; // log
-					for (int j = 0; j < num; j++) {
-						if (CSMA_model.MSstatus[j] == 4) {
+					for (int j = 0; j < num; j++) { //?????
+						if (CSMA_model.MScollide[j]) {
 							capture.push_back(make_pair(SINR[j], j));
-							//CSMA_model.MScollide[j] = false;
+							//cout<<j<<"  ";
+							CSMA_model.MScollide[j] = false;
 						}
 					}
 					//cout<<"failed"<<endl; // log
@@ -176,44 +191,58 @@ int main (int argc , char* argv[])
 					for (int k = 0; k < capture.size(); k++) {
 						//cout<<capture[k].first<<" ";
 					}
+					// capture
 					if (capture.size() >= 2 && abs(capture[capture.size() - 1].first - capture[capture.size() - 2].first) >= CSMA_model.captureThreshold) {
 						//cout<<capture[capture.size() - 1].second<<"captured others";
 						CSMA_model.MSstatus[capture[capture.size() - 1].second] = 3;
-						CSMA_model.sending = capture[capture.size() - 1].second;
+						CSMA_model.MSsucceed[capture[capture.size() - 1].second] = true;
+						CSMA_model.idleTime = t + bits / bit_rate[capture[capture.size() - 1].second]; // bit rate : KB/sec
+						CSMA_model.idleTime *= res;
+						CSMA_model.idleTime = round(CSMA_model.idleTime);
+						CSMA_model.idleTime /= res;
 						//cout<<CSMA_model.idleTime<< " sec "<<endl; // log
+						CSMA_model.sending = capture[capture.size() - 1].second;
 					}
+					CSMA_model.MSsend = -1;
 				}
-				// update status
+				
+				// no collision
+				if (CSMA_model.MSsend != -1) {
+					//cout<<t<<" sec "<<"no collision, "<<CSMA_model.MSsend<<" send with idle time "; // log
+					CSMA_model.MSstatus[CSMA_model.MSsend] = 3;
+					//CSMA_model.MSprepared[CSMA_model.MSsend] = false;
+					CSMA_model.MSsucceed[CSMA_model.MSsend] = true;
+					CSMA_model.idleTime = t + bits / bit_rate[CSMA_model.MSsend]; // bit rate : KB/sec
+					CSMA_model.idleTime *= res;
+					CSMA_model.idleTime = round(CSMA_model.idleTime);
+					CSMA_model.idleTime /= res;
+					//cout<<CSMA_model.idleTime<< " sec "<<endl; // log
+					CSMA_model.sending = CSMA_model.MSsend;
+					CSMA_model.MSsend = -1;
+				}
+
+				// set busy time (with double epsilon)
 				for (int j = 0; j < num; j++) {
 					if (abs(t - CSMA_model.idleTime[j]) < CSMA_model.time_interval / 2) {
-						if (CSMA_model.MSstatus[j] == 3) {
-							CSMA_model.MSstatus[j] = 5;
-							CSMA_model.sending = -1;
-						}
-						else if (CSMA_model.MSstatus[j] == 4) {
-							CSMA_model.MSstatus[j] = 6;				
-						}
-						CSMA_model.idleTime[j] = -1;
+						
 					}
-					//cout<<"channel clear"; // debug log
-				}		
-				for (int j = 0; j < num; j++) {
+				}
+				
+				
+					for (int j = 0; j < num; j++) {
+						
+					if (CSMA_model.idleTime[j] != -1) 
+					}
+					CSMA_model.sending = -1;
+					CSMA_model.idleTime = -1;
 					CSMA_model.isBusy = false;
-					if (abs(-1 - CSMA_model.idleTime[j]) < CSMA_model.time_interval / 2) {
-					}
-					else {
-						//cout<<"set busy"; // debug log
-						CSMA_model.isBusy = true;
-						break;
-					}
 					//cout<<"channel clear"; // debug log
 				}
-				// time to send
+				
+				// time to send (with double epsilon)
 				if (abs(t - time_stat[CSMA_model.count]) < CSMA_model.time_interval / 2) {
-					//cout<<"time to send"; // debug log
 					//cout<<t<<" sec "<<CSMA_model.count<<" time to send"<<endl; // log
-					if (!CSMA_model.isBusy) {
-						//cout<<"no busy"<<endl; // debug log
+					if (CSMA_model.idleTime == -1) {
 						CSMA_model.MSstatus[CSMA_model.count] = 2;
 					}
 					else {
@@ -221,50 +250,42 @@ int main (int argc , char* argv[])
 					}
 					CSMA_model.count++;
 				}
+				
 				// one-persistent
 				for (int j = 0; j < num; j++) {
-					if ((double)rand() / RAND_MAX <= CSMA_model.p && CSMA_model.MSstatus[j] == 1 && !CSMA_model.isBusy) {
+					if ((double)rand() / RAND_MAX <= CSMA_model.p && CSMA_model.MSstatus[j] == 1 && CSMA_model.idleTime == -1) {
 						CSMA_model.MSstatus[j] = 2;
 					}
 				}
-				// calculate data
 				if (CSMA_model.sending != -1) {
 					CSMA_model.data = CSMA_model.data + CSMA_model.time_interval * bit_rate[CSMA_model.sending];
 				}
-			}
-			// end time stimulation
-			for (int i = 0; i < D.size(); i++) {
-				if (CSMA_model.MSstatus[i] == 5) {
-					CSMA_model.succeed++;
+			} // end time stimulation
+				for (int i = 0; i < D.size(); i++) {
+					if (CSMA_model.MSsucceed[i]) {
+						//CSMA_model.data += bits;
+						CSMA_model.succeed++;
+					}
+					//cout<<CSMA_model.MSsucceed[i];
+
 				}
-				//cout<<CSMA_model.MSsucceed[i]; // debug log
-			}
-				//file_out<<bits<<"  "<<CSMA_model.data<<"  "<<CSMA_model.succeed / D.size()<<endl;
-				if (n == 0) {
-					result[0].push_back(bits);
-					result[1].push_back(CSMA_model.data);
-					result[2].push_back(CSMA_model.succeed / D.size());
-				}
-				else {
-					result[0][count] += CSMA_model.bits;
-					result[1][count] += CSMA_model.data;
-					result[2][count] += CSMA_model.succeed / D.size();
-				}
+				//cout<<bits<<"  "<<CSMA_model.data<<"  "<<CSMA_model.succeed / D.size()<<endl; // log
+				file_out<<bits<<"  "<<CSMA_model.data<<"  "<<CSMA_model.succeed / D.size()<<endl;
+				/*result[count][0] = bits;
+				result[count][1] = CSMA_model.data;
+				result[count][2] = CSMA_model.succeed / D.size();*/
 				count++;
+
+			} // end bits stimulation
 		}
-		// end bits stimulation
-		//cout<<n<<" end";
-	}
-	/*vector<double>::iterator iter = result[0].begin();
-	for (int ix = 0; iter != result[0].end(); iter++, ix++) {
-		cout<<*iter<<endl;
-	}*/
-	for (int i = 0; i < result[0].size(); i++) {
-		result[0][i] /= runTime;
-		result[1][i] /= runTime;
-		result[2][i] /= runTime;
-		file_out<<result[0][i]<<"  "<<result[1][i]<<"  "<<result[2][i]<<endl;
-	}
+		/*for (int i = 0; i < (CSMA_model.endBits - CSMA_model.startBits) / CSMA_model.bitsInterval; i++) {
+			result[i][0] /= runTime;
+			result[i][1] /= runTime;
+			result[i][2] /= runTime;
+			file_out<<result[i][0]<<"  "<<result[i][1]<<"  "<<result[i][2]<<endl;
+		}*/
+		
+		
 	}
 	// --end--
 
