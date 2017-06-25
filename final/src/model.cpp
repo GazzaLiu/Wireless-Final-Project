@@ -66,39 +66,49 @@ model::inter(int distance) {
 	//fin.push_back(SINR);
 	return result;
 };
+/*
 vector<bool>
 random_access::collision(vector<double> time, vector<double> rate) {
-	vector<bool> col(mn.size(), 1);
-	for (unsigned i = 0; i < time.size(); ++i) {
-		for (unsigned j = i + 1; j < time.size(); ++j) {
-			double t = time[i] + bits / rate[i];
-			if (t >= time[j]) {
-				col[j] = 0;
-				col[i] = 0;
-				j++;
-			}
-			else
-				break;
-		}
-	}
-	return col;
+vector<bool> col(mn.size(), 1);
+for (unsigned i = 0; i < time.size(); ++i) {
+for (unsigned j = i + 1; j < time.size(); ++j) {
+double t = time[i] + bits / rate[i];
+if (t >= time[j]) {
+col[j] = 0;
+col[i] = 0;
+j++;
 }
+else
+break;
+}
+}
+return col;
+}
+*/
 vector<double>
 aloha::random_time() {
-	double lower_bound = 0;
+	/*double lower_bound = 0;
 	double upper_bound = total_time;
 	uniform_real_distribution<double> unif(lower_bound, upper_bound);
 	default_random_engine re;
 	vector<double> random;
 	for (unsigned i = 0; i < mn.size(); ++i) {
-		double ran = unif(re);
-		random.push_back(ran);
+	double ran = unif(re);
+	random.push_back(ran);
 	}
 	sort(random.begin(), random.end());
 	for (int i = 0; i < random.size(); i++)
 	{
-		random[i] = int(random[i] * 100 + 0.5) / 100.0;
+	random[i] = int(random[i] * 100 + 0.5) / 100.0;
 	}
+	return random;*/
+	vector<double> random;
+	for (unsigned i = 0; i < mn.size(); ++i) {
+		double ran;
+		ran = ((rand() % (100 * total_time)) + 1) / 100.0;
+		random.push_back(ran);
+	}
+	sort(random.begin(), random.end());
 	return random;
 };
 
@@ -158,9 +168,10 @@ random_i::BS_dis() {
 
 int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> bit_rate)
 {
+
 	vector<double> transmit_duration = calculate_transmit_duration(bits, bit_rate);
 	last_busy_end = mobile_time[0] + transmit_duration[0];
-	srand(time(NULL));
+	vector<int> backoff;
 
 	//亂數出每個mobile要backoff的亂數
 	for (unsigned i = 0; i < mn.size(); ++i) {
@@ -171,33 +182,32 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 	//若上一個busy結束的時間在可以容許的傳輸時間以內，第一個mobile就成功傳輸了
 	if (last_busy_end < total_duration) { data_transmitted = 1; }
 
-	/*	cout << endl << "mobile_time" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] << " ";
-	cout << endl;
+	if (print) {
+		cout << endl << "mobile_time" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+		cout << endl;
 
-	cout << endl << "backoff" << endl;
-	for (int i = 0; i<backoff.size(); i++)cout << backoff[i] << " ";
-	cout << endl;
+		cout << endl << "backoff" << endl;
+		for (int i = 0; i < backoff.size(); i++)cout << backoff[i] << " ";
+		cout << endl;
 
-	cout << endl << "mobile_time+backoff" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot << " ";
-	cout << endl;
+		cout << endl << "mobile_time+backoff+transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot + transmit_duration[i] << " ";
+		cout << endl;
 
-	cout << endl << "mobile_time+backoff+transmit_duration" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot + transmit_duration[i] << " ";
-	cout << endl;
+		cout << endl << "transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << transmit_duration[i] << " ";
+		cout << endl;
 
-	cout << endl << "transmit_duration" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << transmit_duration[i] << " ";
-	cout << endl;
-
-	cout << endl<<"first last_busy_end:" << last_busy_end << endl;
-	*/
+		cout << endl << "first last_busy_end:" << last_busy_end << endl;
+	}
 	mobile_time[0] = 0;
 
 	while (mobile_time[mobile_time.size() - 1] != 0)
 	{
-		//		cout << endl << "While start~~" << endl;
+		if (print) {
+			cout << endl << "While start~~" << endl;
+		}
 		collision = 1;
 		//起始時間在上一個busy time裡面的人，起始時間改成上一個busy time結束了以後
 		for (int i = 1; i < mobile_time.size(); i++)
@@ -207,24 +217,33 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 			if (mobile_time[i] < last_busy_end)
 			{
 				mobile_time[i] = last_busy_end;
-				/*				cout << endl;
-				cout << "last_busy_end" << last_busy_end << endl;
-				cout << "new mobile_time " << i << " = " << last_busy_end<<endl;
-				*/
+				if (print) {
+					cout << endl;
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "new mobile_time " << i << " = " << last_busy_end << endl;
+				}
 			}
 			else
 			{
-				/*				cout << "last_busy_end" << last_busy_end << endl;
-				cout << "else: no mobile ahead" << endl;
-				*/				break;
+				if (print) {
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "else: no mobile ahead" << endl;
+				}				break;
 			}
+		}
+		if (print) {
+			cout << endl << "mobile_time" << endl;
+			for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+			cout << endl;
 		}
 
 		//判斷誰是下一個可以傳輸的mobile
 		while (collision == 1)
 		{
 			all_mobile_collision = 1;
-			//			cout << "判斷誰是下一個可以傳輸的mobile"<<endl;
+			if (print) {
+				cout << "判斷誰是下一個可以傳輸的mobile" << endl;
+			}
 			collision = 0;
 			for (int i = 1; i < mobile_time.size(); i++)
 			{
@@ -235,14 +254,18 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 					break;
 				}
 			}
-			//			cout << endl<<"all_mobile_collision" << all_mobile_collision<< endl;
+			if (print) {
+				cout << endl << "all_mobile_collision" << all_mobile_collision << endl;
+			}
 			if (all_mobile_collision == 1)
 			{
 				last_busy_end = total_duration + 1;
 				break;
 			}
 
-			//			cout << "next_mobile(1)=" << next_mobile<<endl;
+			if (print) {
+				cout << "next_mobile(1)=" << next_mobile << endl;
+			}
 
 			for (int i = 1; i < mobile_time.size(); i++)
 			{
@@ -254,7 +277,9 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 				}
 			}
 
-			//			cout << "next_mobile(2)=" << next_mobile << endl;
+			if (print) {
+				cout << "next_mobile(2)=" << next_mobile << endl;
+			}
 
 			//檢查目前選定的next_mobile有沒有collision
 			for (int j = 1; j < mobile_time.size(); j++)
@@ -263,7 +288,9 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 				if (j == next_mobile) { continue; }
 				if (mobile_time[j] + backoff[j] * backoff_slot == mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
 				{
-					//					cout << "collision: mobile "<<j<<endl;
+					if (print) {
+						cout << "collision: mobile " << j << endl;
+					}
 					collision = 1;
 					mobile_time[j] = 0;
 				}
@@ -279,12 +306,13 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 			mobile_time[next_mobile] = 0;
 		}
 
-		/*		cout << endl << "mobile_time" << endl;
-		for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] << " ";
-		cout << endl;
+		if (print) {
+			cout << endl << "mobile_time" << endl;
+			for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+			cout << endl;
 
-		cout << "last_busy_end" << last_busy_end << endl;
-		*/
+			cout << "last_busy_end" << last_busy_end << endl;
+		}
 		if (last_busy_end > total_duration)
 		{
 			break;
@@ -293,7 +321,9 @@ int non_CSMA::collision_no_duration(vector<double> mobile_time, vector<double> b
 		{
 			data_transmitted++;
 		}
-		//		cout << endl << "data_transmitted:" << data_transmitted << endl;
+		if (print) {
+			cout << endl << "data_transmitted:" << data_transmitted << endl;
+		}
 	}
 	return data_transmitted;
 }
@@ -302,7 +332,174 @@ int non_CSMA::collision_have_duration(vector<double> mobile_time, vector<double>
 {
 	vector<double> transmit_duration = calculate_transmit_duration(bits, bit_rate);
 	last_busy_end = mobile_time[0] + transmit_duration[0];
-	srand(time(NULL));
+	vector<int> backoff;
+
+	//亂數出每個mobile要backoff的亂數
+	for (unsigned i = 0; i < mn.size(); ++i) {
+		int ran;
+		ran = ((rand() % backoff_max) + 1);
+		backoff.push_back(ran);
+	}
+	//若上一個busy結束的時間在可以容許的傳輸時間以內，第一個mobile就成功傳輸了
+	if (last_busy_end < total_duration) { data_transmitted = 1; }
+	if (print) {
+		cout << endl << "mobile_time" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+		cout << endl;
+
+		cout << endl << "backoff" << endl;
+		for (int i = 0; i < backoff.size(); i++)cout << backoff[i] << " ";
+		cout << endl;
+
+		cout << endl << "mobile_time+backoff+transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot + transmit_duration[i] << " ";
+		cout << endl;
+
+		cout << endl << "transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << transmit_duration[i] << " ";
+		cout << endl;
+
+		cout << endl << "first last_busy_end:" << last_busy_end << endl;
+	}
+	mobile_time[0] = 0;
+
+	while (1)
+	{
+		if (print) {
+			cout << endl << "While start~~" << endl;
+		}
+		collision = 1;
+		//起始時間在上一個busy time裡面的人，起始時間改成上一個busy time結束了以後
+		for (int i = 1; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] == 0)
+				continue;
+			if (mobile_time[i] < last_busy_end)
+			{
+				mobile_time[i] = last_busy_end;
+				if (print) {
+					cout << endl;
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "new mobile_time " << i << " = " << last_busy_end << endl;
+				}
+			}
+			else
+			{
+				if (print) {
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "else: no mobile ahead" << endl;
+				}
+				break;
+			}
+		}
+		if (print) {
+			cout << endl << "mobile_time" << endl;
+			for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+			cout << endl;
+		}
+
+		//判斷誰是下一個可以傳輸的mobile
+		all_mobile_collision = 1;
+		if (print) {
+			cout << "判斷誰是下一個可以傳輸的mobile" << endl;
+		}
+		for (int i = 1; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] != 0)
+			{
+				next_mobile = i;
+				all_mobile_collision = 0;
+				break;
+			}
+		}
+		if (print) {
+			cout << endl << "all_mobile_collision: " << all_mobile_collision << endl;
+		}
+		if (all_mobile_collision == 1)
+		{
+			last_busy_end = total_duration + 1;
+			break;
+		}
+
+		if (print) {
+			cout << "next_mobile(1)=" << next_mobile << endl;
+		}
+
+		for (int i = 1; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] == 0)
+				continue;
+			if (mobile_time[i] + backoff[i] * backoff_slot < mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
+			{
+				next_mobile = i;
+			}
+		}
+
+		if (print) {
+			cout << "next_mobile(2)=" << next_mobile << endl;
+		}
+
+		last_busy_end = mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot + transmit_duration[next_mobile];
+
+		if (print) {
+			cout << "last_busy_end" << last_busy_end << endl;
+		}
+
+		//檢查目前選定的next_mobile有沒有collision
+		collision = 0;
+		for (int j = 1; j < mobile_time.size(); j++)
+		{
+			//如果有其他mobile這樣算出來的數字和next_mobile相同，就collision了
+			if (j == next_mobile) { continue; }
+			if (mobile_time[j] + backoff[j] * backoff_slot == mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
+			{
+				if (print) {
+					cout << "collision: mobile " << j << endl;
+				}
+				collision = 1;
+				if (mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j] > last_busy_end)
+				{
+					last_busy_end = mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j];
+				}
+				mobile_time[j] = 0;
+			}
+		}
+
+		mobile_time[next_mobile] = 0;
+
+		if (print) {
+			cout << endl << "mobile_time" << endl;
+			for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+			cout << endl;
+
+			cout << "last_busy_end" << last_busy_end << endl;
+		}
+		if (last_busy_end > total_duration)
+		{
+			break;
+		}
+		else if (collision == 0)
+		{
+			data_transmitted++;
+		}
+		if (print) {
+			cout << endl << "data_transmitted:" << data_transmitted << endl;
+		}
+	}
+
+	return data_transmitted;
+}
+
+int non_CSMA::collision_capture(vector<double> mobile_time, vector<double> bit_rate, vector<double> SINR)
+{
+	//cout << "backoff_max: " << backoff_max << endl;
+	vector<double> transmit_duration = calculate_transmit_duration(bits, bit_rate);
+	last_busy_end = mobile_time[0] + transmit_duration[0];
+	int SINR1 = 0;
+	int SINR2 = 0;
+	double longest_end = 0;
+	vector<int> backoff;
+	data_transmitted = 0;
 
 	//亂數出每個mobile要backoff的亂數
 	for (unsigned i = 0; i < mn.size(); ++i) {
@@ -313,34 +510,218 @@ int non_CSMA::collision_have_duration(vector<double> mobile_time, vector<double>
 	//若上一個busy結束的時間在可以容許的傳輸時間以內，第一個mobile就成功傳輸了
 	if (last_busy_end < total_duration) { data_transmitted = 1; }
 
-	/*	cout << endl << "mobile_time" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] << " ";
-	cout << endl;
+	if (print) {
+		cout << endl << "mobile_time" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+		cout << endl;
 
-	cout << endl << "backoff" << endl;
-	for (int i = 0; i<backoff.size(); i++)cout << backoff[i] << " ";
-	cout << endl;
+		cout << endl << "backoff" << endl;
+		for (int i = 0; i < backoff.size(); i++)cout << backoff[i] << " ";
+		cout << endl;
 
-	cout << endl << "mobile_time+backoff" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot << " ";
-	cout << endl;
+		cout << endl << "mobile_time+backoff+transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot + transmit_duration[i] << " ";
+		cout << endl;
 
-	cout << endl << "mobile_time+backoff+transmit_duration" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] + backoff[i] * backoff_slot + transmit_duration[i] << " ";
-	cout << endl;
+		cout << endl << "transmit_duration" << endl;
+		for (int i = 0; i < mobile_time.size(); i++)cout << transmit_duration[i] << " ";
+		cout << endl;
 
-	cout << endl << "transmit_duration" << endl;
-	for (int i = 0; i<mobile_time.size(); i++)cout << transmit_duration[i] << " ";
-	cout << endl;
+		cout << endl << "SINR" << endl;
+		for (int i = 0; i < SINR.size(); i++)cout << SINR[i] << " ";
+		cout << endl;
 
-	cout << endl << "first last_busy_end:" << last_busy_end << endl;
-	*/
+		cout << endl << "first last_busy_end:" << last_busy_end << endl;
+	}
 	mobile_time[0] = 0;
 
-	while (mobile_time[mobile_time.size() - 1] != 0)
+	while (1)
 	{
-		//		cout << endl << "While start~~" << endl;
-		collision = 1;
+		SINR1 = 0;
+		SINR2 = 0;
+		longest_end = 0;
+		bool capture = 0;
+		if (print) {
+			cout << endl << "While start~~" << endl;
+		}
+		collision = 0;
+		all_mobile_collision = 0;
+
+		//判斷誰是下一個可以傳輸的mobile
+		if (print) {
+			cout << "判斷誰是下一個可以傳輸的mobile" << endl;
+		}
+
+		for (int i = 1; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] != 0)
+			{
+				next_mobile = i;
+				break;
+			}
+		}
+
+		if (print) {
+			cout << "next_mobile(1)=" << next_mobile << endl;
+		}
+
+		for (int i = 1; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] == 0)
+				continue;
+			if (mobile_time[i] + backoff[i] * backoff_slot < mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
+			{
+				next_mobile = i;
+			}
+		}
+
+		if (print) {
+			cout << "next_mobile(2)=" << next_mobile << endl;
+		}
+
+		SINR1 = next_mobile;
+		longest_end = mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot + transmit_duration[next_mobile];
+
+		//檢查目前選定的next_mobile有沒有collision
+		for (int j = 1; j < mobile_time.size(); j++)
+		{
+			//如果有其他mobile這樣算出來的數字和next_mobile相同，就collision了
+			if (j == next_mobile) { continue; }   //自己不會跟自己collision(?
+			if (mobile_time[j] + backoff[j] * backoff_slot == mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
+			{
+				collision = 1;
+
+				//找出最久的mobile
+				if (longest_end < mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j])
+				{
+					longest_end = mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j];
+				}
+
+				//找出SINR最大的前兩名
+				if (SINR[j] > SINR[SINR1])
+				{
+					if (SINR1 != next_mobile) { mobile_time[SINR1] = 0; }
+					SINR2 = SINR1;
+					SINR1 = j;
+				}
+				else if (SINR[j] > SINR[SINR2])
+				{
+					mobile_time[j] = 0;
+					SINR2 = j;
+				}
+				else if (SINR2 == 0)
+				{
+					SINR2 = j;
+					mobile_time[j] = 0;
+				}
+				else
+				{
+					mobile_time[j] = 0;
+				}
+				if (print) {
+					cout << "collision: " << collision << endl;
+					cout << "collision: mobile " << j << endl;
+					cout << "SINR1: " << SINR1 << endl;
+					cout << "SINR2: " << SINR2 << endl;
+					cout << "mobile_time:" << endl;
+					for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+					cout << endl;
+				}
+			}
+		}
+
+		//看是否符合capture條件
+		if ((collision == 1) && (SINR[SINR1] - SINR[SINR2] >= capture_threshold)) {
+			if (print)
+			{
+				cout << "capture~" << endl;
+			}
+			capture = 1;
+		}
+
+		//計算last_busy_end
+		if (collision == 0)
+		{
+			last_busy_end = mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot + transmit_duration[next_mobile];
+		}
+		else
+		{
+			last_busy_end = longest_end;
+		}
+		mobile_time[SINR1] = 0;
+		mobile_time[next_mobile] = 0;
+		if (print) {
+			cout << "last_busy_end" << last_busy_end << endl;
+			cout << "mobile_time" << endl;
+			for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+			cout << endl;
+		}
+
+		//判斷是否 all collision
+		all_mobile_collision = 1;
+		for (int i = 0; i < mobile_time.size(); i++)
+		{
+			if (mobile_time[i] != 0)
+			{
+				all_mobile_collision = 0;
+				break;
+			}
+		}
+		if (print)
+		{
+			cout << "all_mobile_collision: " << all_mobile_collision << endl;
+		}
+
+		//判斷是否超時
+		if (last_busy_end > total_duration)
+		{
+			if (print) {
+				cout << endl << "total_duration: " << total_duration << endl;
+				cout << endl << "time out~~ XD" << endl;
+			}
+			break;
+		}
+
+		//計算data_transmitted
+		if (collision == 0)
+		{
+			data_transmitted++;
+			if (all_mobile_collision == 1)
+			{
+				if (print) {
+					cout << endl << "all_mobile_collision" << endl;
+				}
+				break;
+			}
+		}
+		else if (capture)
+		{
+			data_transmitted++;
+			if (all_mobile_collision == 1)
+			{
+				if (print) {
+					cout << endl << "capture & all_mobile_collision" << endl;
+				}
+				break;
+			}
+		}
+		else
+		{
+			if (all_mobile_collision == 1)
+			{
+				if (print) {
+					cout << endl << "collision & all_mobile_collision" << endl;
+				}
+				break;
+			}
+		}
+		mobile_time[SINR1] = 0;
+		mobile_time[next_mobile] = 0;
+
+		if (print) {
+			cout << endl << "data_transmitted:" << data_transmitted << endl;
+		}
+
 		//起始時間在上一個busy time裡面的人，起始時間改成上一個busy time結束了以後
 		for (int i = 1; i < mobile_time.size(); i++)
 		{
@@ -349,101 +730,23 @@ int non_CSMA::collision_have_duration(vector<double> mobile_time, vector<double>
 			if (mobile_time[i] < last_busy_end)
 			{
 				mobile_time[i] = last_busy_end;
-				/*								cout << endl;
-				cout << "last_busy_end" << last_busy_end << endl;
-				cout << "new mobile_time " << i << " = " << last_busy_end<<endl;
-				*/
+				if (print) {
+					cout << endl;
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "new mobile_time " << i << " = " << last_busy_end << endl;
+					for (int i = 0; i < mobile_time.size(); i++)cout << mobile_time[i] << " ";
+					cout << endl;
+				}
 			}
 			else
 			{
-				/*				cout << "last_busy_end" << last_busy_end << endl;
-				cout << "else: no mobile ahead" << endl;
-				*/								break;
-			}
-		}
-
-		//判斷誰是下一個可以傳輸的mobile
-		while (collision == 1)
-		{
-			all_mobile_collision = 1;
-			//			cout << "判斷誰是下一個可以傳輸的mobile" << endl;
-			collision = 0;
-			for (int i = 1; i < mobile_time.size(); i++)
-			{
-				if (mobile_time[i] != 0)
-				{
-					next_mobile = i;
-					all_mobile_collision = 0;
-					break;
+				if (print) {
+					cout << "last_busy_end" << last_busy_end << endl;
+					cout << "else: no mobile ahead" << endl;
 				}
-			}
-			//			cout << endl << "all_mobile_collision: " << all_mobile_collision << endl;
-			if (all_mobile_collision == 1)
-			{
-				last_busy_end = total_duration + 1;
 				break;
 			}
-
-			//			cout << "next_mobile(1)=" << next_mobile << endl;
-
-			for (int i = 1; i < mobile_time.size(); i++)
-			{
-				if (mobile_time[i] == 0)
-					continue;
-				if (mobile_time[i] + backoff[i] * backoff_slot < mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
-				{
-					next_mobile = i;
-				}
-			}
-
-			//			cout << "next_mobile(2)=" << next_mobile << endl;
-
-			last_busy_end = mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot + transmit_duration[next_mobile];
-
-			//檢查目前選定的next_mobile有沒有collision
-			for (int j = 1; j < mobile_time.size(); j++)
-			{
-				//如果有其他mobile這樣算出來的數字和next_mobile相同，就collision了
-				if (j == next_mobile) { continue; }
-				if (mobile_time[j] + backoff[j] * backoff_slot == mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot)
-				{
-					//					cout << "collision: mobile " << j << endl;
-					collision = 1;
-					if (mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j] > last_busy_end)
-					{
-						last_busy_end = mobile_time[j] + backoff[j] * backoff_slot + transmit_duration[j];
-					}
-					mobile_time[j] = 0;
-				}
-			}
-			if (collision == 1) {
-				mobile_time[next_mobile] = 0;
-				break;
-			}
-			//			cout << "last_busy_end" << last_busy_end << endl;
 		}
-
-		if (all_mobile_collision == 0)
-		{
-			//			last_busy_end = mobile_time[next_mobile] + backoff[next_mobile] * backoff_slot + transmit_duration[next_mobile];
-			mobile_time[next_mobile] = 0;
-		}
-
-		/*		cout << endl << "mobile_time" << endl;
-		for (int i = 0; i<mobile_time.size(); i++)cout << mobile_time[i] << " ";
-		cout << endl;
-
-		cout << "last_busy_end" << last_busy_end << endl;
-		*/
-		if (last_busy_end > total_duration)
-		{
-			break;
-		}
-		else if (collision == 0)
-		{
-			data_transmitted++;
-		}
-		//		cout << endl << "data_transmitted:" << data_transmitted << endl;
 	}
 	return data_transmitted;
 }

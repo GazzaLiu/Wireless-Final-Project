@@ -63,7 +63,7 @@ public:
 
 class random_access {
 public:
-	vector<bool> collision(vector<double> time, vector<double> rate);
+	//vector<bool> collision(vector<double> time, vector<double> rate);
 	void add_mobiles(vector<double> a) { mn = a; }
 	vector<bool> time_solt;
 	int bits = 10;
@@ -98,14 +98,16 @@ public:
 	int data_transmitted = 0; //幾個mobile已經傳輸成功
 	double last_busy_end = 0;
 	int next_mobile = 1; //下一個要傳輸的mobile編號
-	vector<int> backoff;
 	int collision = 1; //有無發生collision
 	int all_mobile_collision = 0; //如果所有人都collision
 	double backoff_slot = 0.01;
 	int backoff_max = 20;
 	int collision_no_duration(vector<double> mobile_time, vector<double> bit_rate);
 	int collision_have_duration(vector<double> mobile_time, vector<double> bit_rate);
+	int collision_capture(vector<double> mobile_time, vector<double> bit_rate, vector<double> SINR);
+	double capture_threshold = 10;
 	vector<double> calculate_transmit_duration(double bits, vector<double> bit_rate);
+	bool print = 0;
 };
 
 
